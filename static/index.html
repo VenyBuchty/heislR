@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="MarkerCluster.css">
+    <link rel="stylesheet" href="MarkerCluster.Default.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-0evHe/X+R7YkIZDRvuzKMRqM+OrBnVFBL6DOitfPri4tjfHxaWutUpFmBp4vmVor" crossorigin="anonymous">
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.8.0/dist/leaflet.css"
+        integrity="sha512-hoalWLoI8r4UszCkZ5kL8vayOGVae1oxXe/2A4AO6J9+580uKHDO3JdHb7NzwwzK5xr/Fs0W40kiNHxM9vyTtQ=="
+        crossorigin="" />
+    <script src="https://unpkg.com/leaflet@1.8.0/dist/leaflet.js"
+        integrity="sha512-BB3hKbKWOc9Ez/TAwyWxNXeoV9c1v6FIeYiBieIWkpLjauysF18NzgR1MBNBXf8/KABdlkX68nAhlwcDFLGPCQ=="
+        crossorigin=""></script>
+    <title>Document</title>
+</head>
+
+<body>
+    <div id="menu"><img src="logo.png" alt=""></div>
+    <div id="mypage"><a href="http://buchtova.codefactory.live" target="_blank">made by ©VenyBuchty
+            | 2022</a>
+    </div>
+    <div id="cont">
+        <div id="map"></div>
+        <div id="search">
+            <p>Select district: </p>
+            <select class="form-select" aria-label="Default select example" id="selectBez">
+                <option selected>All</option>
+                <!-- Dynamic -->
+            </select>
+            <table class="table  table-striped">
+                <thead>
+                    <tr>
+                        <th scope="col" class="bezirkCol">Bezirk</th>
+                        <th scope="col">Straße</th>
+                        <th scope="col">Öffnungszeiten</th>
+                        <th scope="col">Betreung</th>
+                    </tr>
+                </thead>
+                <tbody id="bodyTable">
+                    <!-- Dynamic -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <script src="jquery-3.6.0.min.js"></script>
+    <script src="leaflet.markercluster.js"></script>
+    <script>
+        /* Bezirk */
+        const bez = ['1. Innere Stadt', '2. Leopoldstadt', '3. Landstraße', '4. Wieden', '5. Margareten', '6. Mariahilf', '7. Neubau', '8. Josefstadt', '9. Alsergrund', '10. Favoriten', '11. Simmering', '12. Meidling', '13. Hietzing', '14. Penzing', '15. Rudolfsheim-Fünfhaus', '16. Ottakring', '17. Hernals', '18. Währing', '19. Döbling', '20. Brigittenau', '21. Floridsdorf', '22. Donaustadt', '23. Liesing'];
+        for (let i = 0; i < bez.length; i++) {
+            let options = `<option value="${[i + 1]}">${bez[i]}</option>`
+            $('select').append(options)
+        }
+
+
+        const heiselIcon = L.icon({
+            iconUrl: 'icon4.png',
+            iconSize: [32, 32],
+            iconAnchor: [32, 32],
+            popupAnchor: [-15, -20]
+        });
+
+
+        let iconRed = L.Icon.extend({
+            options: {
+                iconUrl: "pee.png",
+                iconSize: [30, 41],
+                popupAnchor: [1, -15]
+            }
+        });
+
+        function onLocationFound(e) {
+            let currLoc = [e.latlng.lat, e.latlng.lng]
+            let position = new L.marker(currLoc).addTo(map).bindPopup('You are here').openPopup()
+            position.setIcon(new iconRed)
+        }
+
+
+        const map = L.map('map').setView([48.210033, 16.363449], 13)
+        map.locate({ setView: true, maxZoom: 14 })
+        map.on('locationfound', onLocationFound);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+        $('.leaflet-control-attribution').hide()
+
+        let listAll, markerAll, markerEin, coord;
+        let tableAll = []
+        $.ajax({
+            url: '/data',
+            method: 'get',
+            data: {},
+            success: resp => {
+                markerAll = L.markerClusterGroup();
+                let einzeln = resp.features
+                $('#summe').append(einzeln.length)
+                for (let j = 0; j < einzeln.length; j++) {
+                    coord = [einzeln[j].geometry.coordinates[1], einzeln[j].geometry.coordinates[0]]
+                    markerEin = L.marker(coord, { icon: heiselIcon, id: einzeln[j].id, bz: einzeln[j].properties.BEZIRK, strasse: einzeln[j].properties.STRASSE }).bindPopup(einzeln[j].properties.STRASSE + ' | ' + einzeln[j].properties.OEFFNUNGSZEIT)
+                    markerEin.on('click', markerOnClick)
+                    markerAll.addLayer(markerEin).addTo(map)
+
+
+                    listAll = `<tr id='${einzeln[j].id}'>
+                            <td class="bezirkCol">${einzeln[j].properties.BEZIRK + '.'} </td>
+                            <td>${einzeln[j].properties.STRASSE}</td>
+                            <td>${einzeln[j].properties.OEFFNUNGSZEIT}</td>
+                            <td>${einzeln[j].properties.PERSONALBETREUUNG}</td>
+                            </td>
+                            </tr>`
+                    $('#bodyTable').append(listAll)
+                    tableAll.push(markerEin)
+
+                }
+                map.addLayer(markerAll);
+                // console.log(listAll, 'list all');
+                console.log(markerAll, 'markery');
+                console.log(tableAll, 'tableAll');
+
+
+
+                $(document).on('change', 'select', function () {
+                    markerAll.clearLayers();
+                    $('#bodyTable').empty()
+                    let value = $(this).val()
+                    for (let k = 0; k < tableAll.length; k++) {
+                        if (value == tableAll[k].options.bz) {
+                            listAll = `<tr id='${einzeln[k].id}'>
+                            <td class="bezirkCol">${einzeln[k].properties.BEZIRK + '.'}</td>
+                            <td>${einzeln[k].properties.STRASSE}</td>
+                            <td>${einzeln[k].properties.OEFFNUNGSZEIT}</td>
+                            <td>${einzeln[k].properties.PERSONALBETREUUNG}</td>
+                            </td>
+                            </tr>`
+                            $('#bodyTable').append(listAll)
+
+
+                            coord = [tableAll[k]._latlng.lat, tableAll[k]._latlng.lng]
+                            markerEin = L.marker(coord, { icon: heiselIcon, id: tableAll[k].options.id, bz: tableAll[k].options.bz, strasse: tableAll[k].options.strasse }).bindPopup(tableAll[k]._popup._content)
+                            markerEin.on('click', markerOnClick)
+                            markerAll.addLayer(markerEin).addTo(map)
+                            map.flyTo(coord, 14)
+
+                        }
+                        if (value == 'All') {
+                            listAll = `<tr id='${einzeln[k].id}'>
+                            <td class="bezirkCol">${einzeln[k].properties.BEZIRK + '.'}</td>
+                            <td>${einzeln[k].properties.STRASSE}</td>
+                            <td>${einzeln[k].properties.OEFFNUNGSZEIT}</td>
+                            <td>${einzeln[k].properties.PERSONALBETREUUNG}</td>
+                            </td>
+                            </tr>`
+                            $('#bodyTable').append(listAll)
+
+                            coord = [tableAll[k]._latlng.lat, tableAll[k]._latlng.lng]
+                            markerEin = L.marker(coord, { icon: heiselIcon, id: tableAll[k].options.id, bz: tableAll[k].options.bz, strasse: tableAll[k].options.strasse }).bindPopup(tableAll[k]._popup._content)
+                            markerEin.on('click', markerOnClick)
+                            markerAll.addLayer(markerEin).addTo(map)
+                            map.flyTo([48.210033, 16.363449], 13)
+                        }
+                    }
+
+                });
+
+
+                $('#bodyTable').on('click', 'tr', function () {
+                    let clickId = $(this).attr('id')
+                    let allOrt = $('#bodyTable')[0].children
+                    console.log(allOrt);
+                    console.log(clickId);
+                    map.eachLayer(function (layer) {
+                        // console.log(layer.options.id);
+                        if (clickId == layer.options.id) {
+                            map.panTo(layer._latlng, 16)
+                            layer.openPopup()
+                        }
+                    })
+
+                    for (ort of allOrt) {
+                        if (ort.id == clickId) {
+                            ort.style.background = '#fbd303'
+                        } else {
+                            ort.style.background = 'none'
+                        }
+                    }
+                });
+
+
+
+                function markerOnClick(e) {
+                    let markerId = e.sourceTarget.options.id
+                    let allOrt = $('#bodyTable')[0].children
+                    for (ort of allOrt) {
+                        ort.style.background = 'none'
+                        if (ort.id == markerId) {
+                            ort.style.background = '#fbd303'
+                            ort.scrollIntoView(true)
+                        }
+                    }
+                    console.log(markerId);
+                }
+
+            }
+        })
+
+
+
+
+        // $(document).on('change', 'select', function () {
+        //     let value = $(this).val()
+        //     console.log(value);
+
+
+
+        // });
+
+
+
+        // $.ajax({
+        //     url: '/data',
+        //     method: 'post',
+        //     data: {},
+        //     success: resp => {
+        //         console.log(resp);
+        //         // $('tbody').html('')
+        //         // for (var i = 0; i < resp.length; i++) {
+        //         //     console.log(resp[i]);
+        //         //     let curak = `< tr > <th>${resp[i].regalName}</th>
+        //         //                     <th>${resp[i].anzahl}</th>
+        //         //                 <th>${resp[i].summe}</th></>`
+        //         //     $('tbody').append(curak)
+        //         // }
+
+        //     }
+        // })
+
+    </script>
+</body>
+
+</html>

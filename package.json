@@ -1,0 +1,20 @@
+{
+  "name": "produktcsv",
+  "version": "1.0.0",
+  "description": "Prüfungsbeispiel",
+  "main": "server.js",
+  "scripts": {
+    "start": "nodemon server"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "csv-parser": "^3.0.0",
+    "csvtojson": "^2.0.10",
+    "express": "^4.17.1",
+    "heroku-ssl-redirect": "^0.1.1",
+    "leaflet.markercluster": "^1.5.3",
+    "morgan": "^1.9.1",
+    "nodemon": "^2.0.2"
+  }
+}
