@@ -17,11 +17,11 @@
     <script src="https://unpkg.com/leaflet@1.8.0/dist/leaflet.js"
         integrity="sha512-BB3hKbKWOc9Ez/TAwyWxNXeoV9c1v6FIeYiBieIWkpLjauysF18NzgR1MBNBXf8/KABdlkX68nAhlwcDFLGPCQ=="
         crossorigin=""></script>
-    <title>Document</title>
+    <title>HeislR</title>
 </head>
 
 <body>
-    <div id="menu"><img src="logo.png" alt=""></div>
+    <div id="menu"><img src="img/logo.png" alt=""></div>
     <div id="mypage"><a href="http://buchtova.codefactory.live" target="_blank">made by ©VenyBuchty
             | 2022</a>
     </div>
@@ -60,7 +60,7 @@
 
 
         const heiselIcon = L.icon({
-            iconUrl: 'icon4.png',
+            iconUrl: 'img/icon4.png',
             iconSize: [32, 32],
             iconAnchor: [32, 32],
             popupAnchor: [-15, -20]
@@ -69,19 +69,20 @@
 
         let iconRed = L.Icon.extend({
             options: {
-                iconUrl: "pee.png",
+                iconUrl: "img/pee.png",
                 iconSize: [30, 41],
                 popupAnchor: [1, -15]
             }
         });
 
+        /* Zeigt position */
         function onLocationFound(e) {
             let currLoc = [e.latlng.lat, e.latlng.lng]
             let position = new L.marker(currLoc).addTo(map).bindPopup('You are here').openPopup()
             position.setIcon(new iconRed)
         }
 
-
+        /* Karte */
         const map = L.map('map').setView([48.210033, 16.363449], 13)
         map.locate({ setView: true, maxZoom: 14 })
         map.on('locationfound', onLocationFound);
@@ -117,9 +118,6 @@
 
                 }
                 map.addLayer(markerAll);
-                // console.log(listAll, 'list all');
-                console.log(markerAll, 'markery');
-                console.log(tableAll, 'tableAll');
 
 
 
@@ -170,10 +168,7 @@
                 $('#bodyTable').on('click', 'tr', function () {
                     let clickId = $(this).attr('id')
                     let allOrt = $('#bodyTable')[0].children
-                    console.log(allOrt);
-                    console.log(clickId);
                     map.eachLayer(function (layer) {
-                        // console.log(layer.options.id);
                         if (clickId == layer.options.id) {
                             map.panTo(layer._latlng, 16)
                             layer.openPopup()
@@ -201,42 +196,12 @@
                             ort.scrollIntoView(true)
                         }
                     }
-                    console.log(markerId);
                 }
 
             }
         })
 
 
-
-
-        // $(document).on('change', 'select', function () {
-        //     let value = $(this).val()
-        //     console.log(value);
-
-
-
-        // });
-
-
-
-        // $.ajax({
-        //     url: '/data',
-        //     method: 'post',
-        //     data: {},
-        //     success: resp => {
-        //         console.log(resp);
-        //         // $('tbody').html('')
-        //         // for (var i = 0; i < resp.length; i++) {
-        //         //     console.log(resp[i]);
-        //         //     let curak = `< tr > <th>${resp[i].regalName}</th>
-        //         //                     <th>${resp[i].anzahl}</th>
-        //         //                 <th>${resp[i].summe}</th></>`
-        //         //     $('tbody').append(curak)
-        //         // }
-
-        //     }
-        // })
 
     </script>
 </body>

@@ -1,7 +1,7 @@
 {
   "name": "produktcsv",
   "version": "1.0.0",
-  "description": "Prüfungsbeispiel",
+  "description": "HeislR",
   "main": "server.js",
   "scripts": {
     "start": "nodemon server"
